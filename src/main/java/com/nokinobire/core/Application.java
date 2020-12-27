@@ -1,7 +1,9 @@
 package com.nokinobire.core;
 
+import com.nokinobire.service.ImageOperation;
 import com.nokinobire.service.LoadService;
 import org.apache.log4j.Logger;
+import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -18,17 +20,16 @@ public class Application implements Runnable {
 
     @Resource
     private LoadService loadService;
+    @Resource
+    private ImageOperation ditheringOperation;
 
     @Override
     public void run() {
         try {
             Image image = loadService.read(new File(INPUT));
-            File outFile = new File(OUTPUT);
-            if (!outFile.exists()) {
-                outFile.createNewFile();
-            }
-            loadService.write(image, outFile);
-        } catch (IOException e) {
+            ditheringOperation.process(image);
+            loadService.write(image, new File(INPUT));
+        } catch (IOException | ParseException e) {
             LOG.error(e);
         }
     }
