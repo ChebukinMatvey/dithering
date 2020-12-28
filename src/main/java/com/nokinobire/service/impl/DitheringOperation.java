@@ -15,7 +15,6 @@ public class DitheringOperation implements ImageOperation {
 
     private static final Logger LOG = Logger.getLogger(DitheringOperation.class);
 
-    // todo: create palette file path property
     private List<Color> palette;
 
     @Resource
@@ -53,19 +52,52 @@ public class DitheringOperation implements ImageOperation {
         for (int i = 0; i < height; ++i) {
             for (int j = 0; j < width; ++j) {
                 oldPixel = new Color(imageToProcess.getRGB(j, i));
-                processPixel(imageToProcess, oldPixel, i, j);
-                spreadError(imageToProcess, oldPixel, i, j);
+                processPixel(imageToProcess, oldPixel, j, i);
+                spreadErrors(imageToProcess, oldPixel, j, i);
             }
         }
     }
 
-    private void spreadError(BufferedImage imageToProcess, Color oldPixel, int i, int j) {
-        // todo: implement
+    private void spreadErrors(BufferedImage image, Color oldPixel, int i, int j) {
+        Color newPixel = new Color(image.getRGB(i, j));
+        int redError = oldPixel.getRed() - newPixel.getRed();
+        int greenError = oldPixel.getGreen() - newPixel.getGreen();
+        int blueError = oldPixel.getBlue() - newPixel.getBlue();
+        spreadErrorToPixel(image, i + 1, j, redError, greenError, blueError, 7 / 16d);
+        spreadErrorToPixel(image, i - 1, j + 1, redError, greenError, blueError, 3 / 16d);
+        spreadErrorToPixel(image, i, j + 1, redError, greenError, blueError, 5 / 16d);
+        spreadErrorToPixel(image, i + 1, j + 1, redError, greenError, blueError, 1 / 16d);
+    }
+
+    private void spreadErrorToPixel(BufferedImage image, int i, int j, int redError, int greenError, int blueError, double multiplyValue) {
+        if (outOfBounds(image, i, j)) {
+            return;
+        }
+        Color pixelToProcess = new Color(image.getRGB(i, j));
+        int newRed = (int) (pixelToProcess.getRed() + redError * multiplyValue);
+        int newGreen = (int) (pixelToProcess.getGreen() + greenError * multiplyValue);
+        int newBlue = (int) (pixelToProcess.getBlue() + blueError * multiplyValue);
+        Color processedPixel = new Color(normalizeColor(newRed), normalizeColor(newGreen), normalizeColor(newBlue));
+        image.setRGB(i, j, processedPixel.getRGB());
+    }
+
+    private boolean outOfBounds(BufferedImage image, int x, int y) {
+        return x < 0 || y < 0 || x > (image.getWidth() - 1) || y > (image.getHeight() - 1);
+    }
+
+    private int normalizeColor(int value) {
+        if (value < 0) {
+            return 0;
+        }
+        if (value >= 255) {
+            return 255;
+        }
+        return value;
     }
 
     private void processPixel(BufferedImage image, Color oldPixel, int i, int j) {
         Color newColor = getClosestColor(oldPixel);
-        image.setRGB(j, i, newColor.getRGB());
+        image.setRGB(i, j, newColor.getRGB());
     }
 
     private Color getClosestColor(Color color) {
@@ -79,6 +111,7 @@ public class DitheringOperation implements ImageOperation {
                 distance = currentDistance;
             }
         }
+        LOG.debug(String.format("Closest color for [%s]  is [%s]", color, closestColor));
         return closestColor;
     }
 
@@ -87,7 +120,7 @@ public class DitheringOperation implements ImageOperation {
                 (Math.pow((c1.getGreen() - c2.getGreen()), 2)) +
                 (Math.pow((c1.getBlue() - c2.getBlue()), 2));
         double distance = Math.sqrt(sum);
-        LOG.debug(String.format("Color distance [%s] to [%s] = %4.3f", c1.toString(), c2.toString(), distance));
+        LOG.debug(String.format("Color distance [%s] to [%s] = %4.3f", c1, c2, distance));
         return distance;
     }
 }

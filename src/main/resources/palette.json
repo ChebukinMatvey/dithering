@@ -1,14 +1,29 @@
 {
   "colors": [
     {
-      "red": 171,
-      "green": 171,
-      "blue": 171
+      "red": 255,
+      "green": 180,
+      "blue": 102
     },
     {
-      "red": 52,
-      "green": 52,
-      "blue": 52
+      "red": 255,
+      "green": 125,
+      "blue": 208
+    },
+    {
+      "red": 131,
+      "green": 203,
+      "blue": 255
+    },
+    {
+      "red": 255,
+      "green": 233,
+      "blue": 72
+    },
+    {
+      "red": 22,
+      "green": 22,
+      "blue": 22
     },
     {
       "red": 100,
@@ -16,9 +31,14 @@
       "blue": 100
     },
     {
-      "red": 130,
-      "green": 130,
-      "blue": 130
+      "red": 150,
+      "green": 150,
+      "blue": 150
+    },
+    {
+      "red": 200,
+      "green": 200,
+      "blue": 200
     }
   ]
 }

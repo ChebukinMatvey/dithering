@@ -6,6 +6,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -22,16 +23,15 @@ public class JsonServiceImpl implements JsonService {
 
     private static final Logger LOG = Logger.getLogger(JsonServiceImpl.class);
 
-    // todo: move to properties file
-    private static final String PALETTE_FILE = "./src/main/resources/palette.json";
+    @Value("${file.path.palette}")
+    private String paletteFile;
 
-    // todo: remove cast to list
     @Override
     public List<Color> readPalette() {
         JSONParser parser = new JSONParser();
         JSONObject obj;
         try {
-            String json = readFileContent(PALETTE_FILE);
+            String json = readFileContent(this.paletteFile);
             obj = (JSONObject) parser.parse(json);
         } catch (ParseException | FileNotFoundException e) {
             LOG.error("Error while trying to read colors from json file", e);
