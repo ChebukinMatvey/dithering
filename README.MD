@@ -1,3 +1,3 @@
 Image processing 
 
-- [ ] Floyd–Steinberg dithering
+- [x] Floyd–Steinberg dithering
