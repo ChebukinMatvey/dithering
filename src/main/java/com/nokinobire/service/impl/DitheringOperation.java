@@ -15,16 +15,13 @@ public class DitheringOperation implements ImageOperation {
 
     private static final Logger LOG = Logger.getLogger(DitheringOperation.class);
 
-    private List<Color> palette;
-
     @Resource
-    private JsonService jsonService;
+    private ColorsServiceImpl colorsService;
 
     @Override
-    public Image process(Image image) {
+    public Image process(Image image, List<Color> palette) {
         BufferedImage bufferedImage = (BufferedImage) image;
-        palette = jsonService.readPalette();
-        processAlgorithm(bufferedImage);
+        processAlgorithm(bufferedImage, palette);
         return bufferedImage;
     }
 
@@ -40,11 +37,9 @@ public class DitheringOperation implements ImageOperation {
      * pixel[x - 1][y + 1] := pixel[x - 1][y + 1] + quant_error × 3 / 16
      * pixel[x    ][y + 1] := pixel[x    ][y + 1] + quant_error × 5 / 16
      * pixel[x + 1][y + 1] := pixel[x + 1][y + 1] + quant_error × 1 / 16
-     * <p>
-     * <p>
      * find_closest_palette_color(oldpixel) = round(oldpixel / 256)
      */
-    private void processAlgorithm(BufferedImage imageToProcess) {
+    private void processAlgorithm(BufferedImage imageToProcess, List<Color> palette) {
         int width = imageToProcess.getWidth();
         int height = imageToProcess.getHeight();
 
@@ -52,7 +47,7 @@ public class DitheringOperation implements ImageOperation {
         for (int i = 0; i < height; ++i) {
             for (int j = 0; j < width; ++j) {
                 oldPixel = new Color(imageToProcess.getRGB(j, i));
-                processPixel(imageToProcess, oldPixel, j, i);
+                processPixel(imageToProcess, oldPixel, j, i, palette);
                 spreadErrors(imageToProcess, oldPixel, j, i);
             }
         }
@@ -95,32 +90,9 @@ public class DitheringOperation implements ImageOperation {
         return value;
     }
 
-    private void processPixel(BufferedImage image, Color oldPixel, int i, int j) {
-        Color newColor = getClosestColor(oldPixel);
+    private void processPixel(BufferedImage image, Color oldPixel, int i, int j, List<Color> palette) {
+        Color newColor = colorsService.getClosestColor(oldPixel, palette);
         image.setRGB(i, j, newColor.getRGB());
     }
 
-    private Color getClosestColor(Color color) {
-        double distance = Double.MAX_VALUE;
-        double currentDistance;
-        Color closestColor = palette.stream().findFirst().orElse(new Color(0, 0, 0));
-        for (Color c : palette) {
-            currentDistance = colorDistance(c, color);
-            if (currentDistance < distance) {
-                closestColor = c;
-                distance = currentDistance;
-            }
-        }
-        LOG.debug(String.format("Closest color for [%s]  is [%s]", color, closestColor));
-        return closestColor;
-    }
-
-    private double colorDistance(Color c1, Color c2) {
-        double sum = (Math.pow((c1.getRed() - c2.getRed()), 2)) +
-                (Math.pow((c1.getGreen() - c2.getGreen()), 2)) +
-                (Math.pow((c1.getBlue() - c2.getBlue()), 2));
-        double distance = Math.sqrt(sum);
-        LOG.debug(String.format("Color distance [%s] to [%s] = %4.3f", c1, c2, distance));
-        return distance;
-    }
 }
